@@ -3,7 +3,6 @@ require "connection_pool"
 require "active_support/concern"
 require "active_support/inflector"
 require "norton/version"
-require "norton/redis"
 require "norton/timestamp"
 require "norton/value"
 

@@ -18,12 +18,13 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "redis", "~> 3.2.1"
-  spec.add_dependency "connection_pool", "~> 2.1.2"
+  spec.add_dependency "redis", "~> 3.1.0"
+  spec.add_dependency "connection_pool", "~> 2.1.0"
   spec.add_dependency "activesupport", "~> 4.1.8"
 
   spec.add_development_dependency "bundler", "~> 1.5"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "minitest", "~> 5.5.1"
-  spec.add_development_dependency "activemodel", "~> 4.1.8"
+  spec.add_development_dependency "activerecord", "~> 4.1.8"
+  spec.add_development_dependency "activerecord-nulldb-adapter"
 end
