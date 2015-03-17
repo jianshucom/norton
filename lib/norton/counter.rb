@@ -9,10 +9,10 @@ module Norton
       # @param touches={} [type] [description]
       #
       # @return [type] [description]
-      def counter(name, options={})
+      def counter(name, options, &blk)
         define_method(name) do
           Norton.redis.with do |conn|
-            conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", Time.now.to_i).try(:to_i) || 0
+            conn.get("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}").try(:to_i) || 0
           end
         end
 
@@ -34,15 +34,23 @@ module Norton
           end
         end
 
+        define_method("reset_#{name}") do
+          count = instance_eval(&blk)
+
+          Norton.redis.with do |conn|
+            conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", count)
+          end
+        end
+
         # Add Increment callback
-        unless options[:incr].empty?
+        unless options[:incr].nil?
           options[:incr].each do |callback|
             self.send callback, proc{ instance_eval("incr_#{name}".to_sym) }
           end
         end
 
         # Add Decrement callback
-        unless options[:decr].empty?
+        unless options[:decr].nil?
           options[:decr].each do |callback|
             self.send callback, proc{ instance_eval("decr_#{name}".to_sym) }
           end

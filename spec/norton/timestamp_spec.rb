@@ -4,7 +4,7 @@ class Dummy
   include Norton::Timestamp
 
   timestamp :born_at
-  timestamp :graduated_at, before_save: -> { title_changed? || content_changed? }
+  # timestamp :graduated_at, before_save: -> { title_changed? || content_changed? }
 
   def id
     1
