@@ -9,7 +9,7 @@ module Norton
       # @param touches={} [type] [description]
       #
       # @return [type] [description]
-      def counter(name, options, &blk)
+      def counter(name, options={}, &blk)
         define_method(name) do
           Norton.redis.with do |conn|
             conn.get("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}").try(:to_i) || 0
