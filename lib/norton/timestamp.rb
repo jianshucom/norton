@@ -12,8 +12,15 @@ module Norton
       def timestamp(name, touches={})
         define_method(name) do
           Norton.redis.with do |conn|
-            conn.get("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}").try(:to_i) || Time.now.to_i
+            ts = conn.get("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}").try(:to_i)
+
+            if ts.nil?
+              ts = Time.now.to_i
+              conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", ts)
+            end
           end
+
+          ts
         end
 
         define_method("touch_#{name}") do
