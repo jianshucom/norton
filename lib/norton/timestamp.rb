@@ -18,9 +18,9 @@ module Norton
               ts = Time.now.to_i
               conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", ts)
             end
-          end
 
-          ts
+            ts
+          end
         end
 
         define_method("touch_#{name}") do
