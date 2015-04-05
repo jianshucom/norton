@@ -46,14 +46,14 @@ module Norton
         # Add Increment callback
         unless options[:incr].nil?
           options[:incr].each do |callback|
-            self.send callback, proc{ instance_eval("incr_#{name}".to_sym) }
+            self.send callback, proc{ instance_eval("incr_#{name}") }
           end
         end
 
         # Add Decrement callback
         unless options[:decr].nil?
           options[:decr].each do |callback|
-            self.send callback, proc{ instance_eval("decr_#{name}".to_sym) }
+            self.send callback, proc{ instance_eval("decr_#{name}") }
           end
         end
       end
