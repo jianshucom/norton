@@ -6,7 +6,8 @@ module Norton
       #
       # [counter description]
       # @param name [type] [description]
-      # @param touches={} [type] [description]
+      # @param options={} [type] [description]
+      # @param block [description]
       #
       # @return [type] [description]
       def counter(name, options={}, &blk)
