@@ -32,7 +32,7 @@ module Norton
         # Add callback
         unless touches.empty?
           touches.each do |callback, condition|
-            self.send callback, proc{ if instance_eval(&condition) then instance_eval("touch_#{name}".to_sym) end }
+            self.send callback, proc{ if instance_eval(&condition) then instance_eval("touch_#{name}") end }
           end
         end
       end
