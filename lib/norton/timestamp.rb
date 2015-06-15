@@ -36,7 +36,7 @@ module Norton
         end
 
         # Add callback
-        unless options[:touch_on].present?
+        if options[:touch_on].present?
           options[:touch_on].each do |callback, condition|
             self.send callback, proc{ if instance_eval(&condition) then instance_eval("touch_#{name}") end }
           end
