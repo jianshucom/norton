@@ -9,7 +9,7 @@ module Norton
       # @param touches={} [type] [description]
       #
       # @return [type] [description]
-      def timestamp(name, options={})
+      def timestamp(name, options={}, touches)
         define_method(name) do
           ts = nil
 
@@ -36,7 +36,7 @@ module Norton
         end
 
         # Add callback
-        unless options[:touch_on].empty?
+        unless options[:touch_on].present?
           options[:touch_on].each do |callback, condition|
             self.send callback, proc{ if instance_eval(&condition) then instance_eval("touch_#{name}") end }
           end
