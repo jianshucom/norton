@@ -9,8 +9,10 @@ module Norton
       # @param touches={} [type] [description]
       #
       # @return [type] [description]
-      def timestamp(name, touches={})
+      def timestamp(name, options={})
         define_method(name) do
+          ts = nil
+
           Norton.redis.with do |conn|
             ts = conn.get("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}").try(:to_i)
 
@@ -25,13 +27,17 @@ module Norton
 
         define_method("touch_#{name}") do
           Norton.redis.with do |conn|
-            conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", Time.now.to_i)
+            if options[:digits].present? && options[:digits] == 13
+              conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", (Time.now.to_f * 1000).to_i)
+            else
+              conn.set("#{self.class.to_s.pluralize.downcase}:#{self.id}:#{name}", Time.now.to_i)
+            end
           end
         end
 
         # Add callback
-        unless touches.empty?
-          touches.each do |callback, condition|
+        unless options[:touch_on].empty?
+          options[:touch_on].each do |callback, condition|
             self.send callback, proc{ if instance_eval(&condition) then instance_eval("touch_#{name}") end }
           end
         end
