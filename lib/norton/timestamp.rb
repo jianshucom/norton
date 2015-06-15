@@ -9,7 +9,7 @@ module Norton
       # @param touches={} [type] [description]
       #
       # @return [type] [description]
-      def timestamp(name, options={}, touches)
+      def timestamp(name, options={})
         define_method(name) do
           ts = nil
 
