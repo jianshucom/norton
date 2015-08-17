@@ -5,6 +5,7 @@ require "active_support/inflector"
 require "norton/version"
 require "norton/timestamp"
 require "norton/counter"
+require "norton/timed_value"
 
 module Norton
   class << self
