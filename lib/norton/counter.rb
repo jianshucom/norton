@@ -44,12 +44,10 @@ module Norton
         end
 
         define_method("remove_#{name}") do
-          puts "remove called"
-          # Norton.redis.with do |conn|
-          #   conn.del("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}")
-          # end
+          Norton.redis.with do |conn|
+            conn.del("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}")
+          end
         end
-        binding.pry
         send(:after_destroy, "remove_#{name}".to_sym)
 
         # Add Increment callback
