@@ -29,6 +29,18 @@ module Norton
           end
         end
 
+        define_method("incr_#{name}_by") do |increment|
+          Norton.redis.with do |conn|
+            conn.incrby("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}", increment)
+          end
+        end
+
+        define_method("decr_#{name}_by") do |decrement|
+          Norton.redis.with do |conn|
+            conn.decrby("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}", decrement)
+          end
+        end
+
         define_method("#{name}=") do |v|
           Norton.redis.with do |conn|
             conn.set("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}", v)
@@ -48,7 +60,7 @@ module Norton
             conn.del("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}")
           end
         end
-        send(:after_destroy, "remove_#{name}".to_sym)
+        send(:after_destroy, "remove_#{name}".to_sym) if respond_to? :after_destroy
 
         # Add Increment callback
         unless options[:incr].nil?

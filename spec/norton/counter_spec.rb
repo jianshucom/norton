@@ -9,7 +9,7 @@ class Dummy
   end
 
   def id
-    Random.rand(10000)
+    @id ||= Random.rand(10000)
   end
 
   def candies
@@ -23,7 +23,7 @@ describe Norton::Counter do
       dummy = Dummy.new
       dummy.reset_candies_count
 
-      dummy.candies_count.must_equal 15
+      expect(dummy.candies_count).to eq(15)
     end
   end
 
@@ -32,7 +32,26 @@ describe Norton::Counter do
       dummy = Dummy.new
       dummy.candies_count = 200
 
-      dummy.candies_count.must_equal 200
+      expect(dummy.candies_count).to eq(200)
+    end
+  end
+
+  describe ".incr_value_by" do
+    it "should increase the value of the given amount" do
+      dummy = Dummy.new
+      dummy.incr_candies_count_by(3)
+
+      expect(dummy.candies_count).to eq(3)
+    end
+  end
+
+  describe ".decr_value_by" do
+    it "should decrease the value of the given amount" do
+      dummy = Dummy.new
+      dummy.candies_count = 15
+      dummy.decr_candies_count_by(5)
+
+      expect(dummy.candies_count).to eq(10)
     end
   end
 end

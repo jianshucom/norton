@@ -6,6 +6,7 @@ require "norton/version"
 require "norton/timestamp"
 require "norton/counter"
 require "norton/timed_value"
+require "norton/helper"
 
 module Norton
   class << self
