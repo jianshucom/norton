@@ -8,8 +8,11 @@ require "norton/counter"
 require "norton/timed_value"
 require "norton/helper"
 require "norton/objects/hash_map"
+require "norton/hash"
 
 module Norton
+  class NilObjectId < StandardError; end
+
   class << self
     attr_accessor :redis
 
