@@ -52,6 +52,11 @@ module Norton
         Norton.redis.with { |conn| conn.hkeys(key) }
       end
       alias_method :keys, :hkeys
+
+      # Redis: DEL
+      def clear
+        Norton.redis.with { |conn| conn.del(key) }
+      end
     end
   end
 end

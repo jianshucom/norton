@@ -10,6 +10,8 @@ module Norton
               Norton::Objects::HashMap.new(norton_field_key(name))
             )
         end
+
+        after_destroy { send(name).clear } if respond_to?(:after_destroy)
       end
     end
 
