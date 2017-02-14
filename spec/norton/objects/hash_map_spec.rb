@@ -92,4 +92,14 @@ describe Norton::Objects::HashMap do
       expect(hash_map.hkeys).to match_array(["name", "age"])
     end
   end
+
+  describe "#clear" do
+    it "deletes the hash from redis" do
+      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map.hset(:name, "Bob")
+
+      hash_map.clear
+      expect(Norton.redis.with { |conn| conn.exists(hash_map.key) }).to eq(false)
+    end
+  end
 end
