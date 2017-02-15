@@ -1,0 +1,13 @@
+language: ruby
+
+services:
+  - redis-server
+
+rvm:
+  - 2.3.0
+
+script:
+  - RAILS_ENV=test bundle exec rake
+
+notifications:
+  email: false
