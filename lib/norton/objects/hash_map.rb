@@ -20,6 +20,12 @@ module Norton
       alias_method :get, :hget
       alias_method :[],  :hget
 
+      # Redis: HMGET
+      def hmget(*field)
+        Norton.redis.with { |conn| conn.hmget(key, field) }
+      end
+      alias_method :bulk_get, :hmget
+
       # Redis: HDEL
       def hdel(*field)
         Norton.redis.with { |conn| conn.hdel(key, field) }
