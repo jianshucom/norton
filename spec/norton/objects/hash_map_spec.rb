@@ -40,6 +40,16 @@ describe Norton::Objects::HashMap do
     end
   end
 
+  describe "#hmget" do
+    it "returns the values associated with the specified fields in the hash" do
+      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map.hset(:name, "Bob")
+      hash_map.hset(:age,  21)
+
+      expect(hash_map.hmget(:name, :age)).to eq(["Bob", "21"])
+    end
+  end
+
   describe "#hincrby" do
     it "increments value by integer at field" do
       hash_map = Norton::Objects::HashMap.new("users:99:profile")
