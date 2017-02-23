@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-class HashObject
-  include Norton::Hash
+class HashMapObject
+  include Norton::HashMap
 
   hash_map :profile
 
@@ -10,15 +10,15 @@ class HashObject
   end
 end
 
-describe Norton::Hash do
+describe Norton::HashMap do
   describe "#norton_field_key" do
     it "generates the correct field key" do
-      object = HashObject.new
-      expect(object.norton_field_key(:profile)).to eq("hash_objects:99:profile")
+      object = HashMapObject.new
+      expect(object.norton_field_key(:profile)).to eq("hash_map_objects:99:profile")
     end
 
     it "raises NilObjectId if the object id is nil" do
-      object = HashObject.new
+      object = HashMapObject.new
       allow(object).to receive(:id) { nil }
 
       expect { object.norton_field_key(:profile) }.to raise_error(Norton::NilObjectId)
@@ -27,8 +27,8 @@ describe Norton::Hash do
 
   describe "#hash_map" do
     it "sets a instance variable" do
-      object = HashObject.new
-      expect(object.profile).to be_a(Norton::Objects::HashMap)
+      object = HashMapObject.new
+      expect(object.profile).to be_a(Norton::Objects::Hash)
     end
   end
 end

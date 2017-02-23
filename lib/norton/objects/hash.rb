@@ -1,6 +1,6 @@
 module Norton
   module Objects
-    class HashMap
+    class Hash
       attr_reader :key
 
       def initialize(key)
