@@ -7,8 +7,8 @@ require "norton/timestamp"
 require "norton/counter"
 require "norton/timed_value"
 require "norton/helper"
-require "norton/objects/hash_map"
-require "norton/hash"
+require "norton/objects/hash"
+require "norton/hash_map"
 
 module Norton
   class NilObjectId < StandardError; end

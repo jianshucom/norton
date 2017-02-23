@@ -1,5 +1,5 @@
 module Norton
-  module Hash
+  module HashMap
     extend ActiveSupport::Concern
 
     module ClassMethods
@@ -7,7 +7,7 @@ module Norton
         define_method(name) do
           instance_variable_get("@#{name}") ||
             instance_variable_set("@#{name}",
-              Norton::Objects::HashMap.new(norton_field_key(name))
+              Norton::Objects::Hash.new(norton_field_key(name))
             )
         end
 

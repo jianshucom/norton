@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Norton::Objects::HashMap do
+describe Norton::Objects::Hash do
   describe "#hset" do
     it "saves the value of the field in redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
       expect(Norton.redis.with { |conn| conn.hget(hash_map.key, :name) }).to eq("Bob")
     end
@@ -11,7 +11,7 @@ describe Norton::Objects::HashMap do
 
   describe "#hget" do
     it "returns the value of the field from redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
 
       expect(hash_map.hget(:name)).to eq("Bob")
@@ -20,7 +20,7 @@ describe Norton::Objects::HashMap do
 
   describe "#hdel" do
     it "deletes the field from redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
 
       hash_map.hdel(:name)
@@ -29,7 +29,7 @@ describe Norton::Objects::HashMap do
     end
 
     it "deletes multiple fields from redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
       hash_map.hset(:age, 21)
 
@@ -42,7 +42,7 @@ describe Norton::Objects::HashMap do
 
   describe "#hmget" do
     it "returns the values associated with the specified fields in the hash" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
       hash_map.hset(:age,  21)
 
@@ -52,7 +52,7 @@ describe Norton::Objects::HashMap do
 
   describe "#hincrby" do
     it "increments value by integer at field" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:age, 21)
 
       hash_map.hincrby(:age, 2)
@@ -60,7 +60,7 @@ describe Norton::Objects::HashMap do
     end
 
     it "increments value by 1" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:age, 21)
 
       hash_map.hincrby(:age)
@@ -70,7 +70,7 @@ describe Norton::Objects::HashMap do
 
   describe "#hdecrby" do
     it "decrements value by integer at field" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:age, 21)
 
       hash_map.hdecrby(:age, 2)
@@ -80,14 +80,14 @@ describe Norton::Objects::HashMap do
 
   describe "#hexists" do
     it "returns true if the field exists in redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
 
       expect(hash_map.hexists(:name)).to be(true)
     end
 
     it "returns false if the field doesn't exist in redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
 
       expect(hash_map.hexists(:name)).to be(false)
     end
@@ -95,7 +95,7 @@ describe Norton::Objects::HashMap do
 
   describe "#hkeys" do
     it "returns all keys in a hash" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
       hash_map.hset(:age, 21)
 
@@ -105,7 +105,7 @@ describe Norton::Objects::HashMap do
 
   describe "#clear" do
     it "deletes the hash from redis" do
-      hash_map = Norton::Objects::HashMap.new("users:99:profile")
+      hash_map = Norton::Objects::Hash.new("users:99:profile")
       hash_map.hset(:name, "Bob")
 
       hash_map.clear
