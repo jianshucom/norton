@@ -1,7 +1,8 @@
-require 'active_record'
-require 'nulldb'
-require 'norton'
-require 'rspec'
+require "active_record"
+require "nulldb"
+require "norton"
+require "rspec"
+require "timecop"
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
@@ -21,6 +22,6 @@ RSpec.configure do |config|
   end
 end
 
-Norton.setup url: 'redis://localhost:6379/0'
+Norton.setup url: "redis://localhost:6379/0"
 
 ActiveRecord::Base.establish_connection :adapter => :nulldb

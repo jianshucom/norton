@@ -16,7 +16,7 @@ module Norton
           Norton.redis.with do |conn|
             ts = conn.get("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}").try(:to_i)
 
-            if ts.nil?
+            if !options[:allow_nil] && ts.nil?
               ts = Time.now.to_i
               conn.set("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}", ts)
             end

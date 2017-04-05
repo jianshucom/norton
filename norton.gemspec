@@ -28,6 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "fuubar"
   spec.add_development_dependency "pry"
   spec.add_development_dependency "pry-nav"
+  spec.add_development_dependency "timecop"
   spec.add_development_dependency "activerecord", "~> 4.1"
   spec.add_development_dependency "activerecord-nulldb-adapter"
 end
