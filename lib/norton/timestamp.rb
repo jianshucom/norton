@@ -39,6 +39,13 @@ module Norton
           end
         end
 
+        define_method("remove_#{name}") do
+          Norton.redis.with do |conn|
+            conn.del("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}")
+          end
+        end
+        send(:after_destroy, "remove_#{name}".to_sym) if respond_to? :after_destroy
+
         # Add callback
         if options[:touch_on].present?
           options[:touch_on].each do |callback, condition|
