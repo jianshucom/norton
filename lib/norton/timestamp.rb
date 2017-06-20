@@ -2,7 +2,9 @@ module Norton
   module Timestamp
     extend ActiveSupport::Concern
 
-    include Norton::Helper
+    included do
+      include Norton::Helper
+    end
 
     module ClassMethods
       #
