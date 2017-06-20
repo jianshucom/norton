@@ -38,7 +38,6 @@ module Norton
       # @return [String]
       #
       def norton_redis_key(name)
-
         "#{self.norton_prefix}:#{name}"
       end
     end
