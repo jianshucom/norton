@@ -1,8 +1,6 @@
 module Norton
   module Counter
-    extend ActiveSupport::Concern
-
-    include Norton::Helper
+    extend ::ActiveSupport::Concern
 
     module ClassMethods
       #
