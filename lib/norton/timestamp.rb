@@ -2,6 +2,8 @@ module Norton
   module Timestamp
     extend ActiveSupport::Concern
 
+    include Norton::Helper
+
     module ClassMethods
       #
       # [timestamp Define a timestamp]

@@ -3,7 +3,6 @@ require 'spec_helper'
 class Dummy
   include Norton::Counter
   include Norton::Timestamp
-  include Norton::Helper
 
   counter :counter1
   counter :counter2
@@ -17,11 +16,11 @@ class Dummy
 end
 
 describe Norton::Helper do
-  describe ".norton_values" do
-    it "should respond to `:norton_values`" do
+  describe "#norton_vals" do
+    it "should respond to `:norton_vals`" do
       dummy = Dummy.new
 
-      expect(dummy).to respond_to(:norton_values)
+      expect(dummy).to respond_to(:norton_vals)
     end
 
     it "should return the specific values" do
@@ -33,7 +32,7 @@ describe Norton::Helper do
 
       dummy.touch_time1
 
-      values = dummy.norton_values(:counter1, :time1)
+      values = dummy.norton_vals(:counter1, :time1)
 
       expect(values).to include(:counter1, :time1)
       expect(values.size).to eq(2)
@@ -50,7 +49,7 @@ describe Norton::Helper do
 
       dummy.touch_time1
 
-      values = dummy.norton_values(:counter1, :counter2, :time2)
+      values = dummy.norton_vals(:counter1, :counter2, :time2)
 
       expect(values).to include(:counter1, :counter2, :time2)
       expect(values.size).to eq(3)
