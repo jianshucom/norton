@@ -16,11 +16,11 @@ module Norton
         # Define getter
         define_method(name) do
           Norton.redis.with do |conn|
-            v = conn.get("#{self.class.to_s.tableize}:#{self.id}:#{name}")
+            v = conn.get(self.norton_redis_key(name))
 
             if v.nil?
               v = instance_eval(&blk)
-              conn.setex("#{self.class.to_s.tableize}:#{self.id}:#{name}", options[:ttl], v)
+              conn.setex(self.norton_redis_key(name), options[:ttl], v)
             end
 
             v
@@ -30,7 +30,7 @@ module Norton
         define_method("reset_#{name}") do
           Norton.redis.with do |conn|
             v = instance_eval(&blk)
-            conn.setex("#{self.class.to_s.tableize}:#{self.id}:#{name}", options[:ttl], v)
+            conn.setex(self.norton_redis_key(name), options[:ttl], v)
             v
           end
         end

@@ -7,10 +7,12 @@ module Norton
       #
       #
       #
-      # @return [<type>] <description>
+      # @return [String]
       #
       def norton_prefix
-        klass = self.class.to_s.underscore
+        id = self.id
+        raise Norton::NilObjectId if id.nil?
+        klass = self.class.to_s.pluralize.underscore
         "#{klass}:#{self.id}"
       end
     end
@@ -20,7 +22,7 @@ module Norton
       #
       #
       #
-      # @return [<type>] <description>
+      # @return [String]
       #
       def norton_redis_key(name)
         "#{self.norton_prefix}:#{name}"
@@ -38,20 +40,11 @@ module Norton
       def norton_vals(*names)
         ret = {}
 
-        puts "names"
-        puts names
-
         redis_keys = names.map { |n| self.norton_redis_key(n) }
-
-        puts "keys"
-        puts redis_keys
 
         redis_values = Norton.redis.with do |conn|
           conn.mget(redis_keys)
         end
-
-        puts "values"
-        puts redis_values
 
         names.each_with_index do |n, index|
           ret[n] = redis_values[index].try(:to_i)

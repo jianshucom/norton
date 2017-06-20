@@ -10,8 +10,6 @@ require "norton/timed_value"
 require "norton/objects/hash"
 require "norton/hash_map"
 
-require "pry"; binding.pry
-
 module Norton
   class NilObjectId < StandardError; end
 
