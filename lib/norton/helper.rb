@@ -35,17 +35,26 @@ module Norton
       #
       # @return [Hash]
       #
-      def norton_vals(*keys)
+      def norton_vals(*names)
         ret = {}
 
-        redis_keys = keys.map { |k| "#{self.class.to_s.pluralize.underscore}:#{self.id}:#{k}" }
+        puts "names"
+        puts names
+
+        redis_keys = names.map { |n| self.norton_redis_key(n) }
+
+        puts "keys"
+        puts redis_keys
 
         redis_values = Norton.redis.with do |conn|
           conn.mget(redis_keys)
         end
 
-        keys.each_with_index do |key, index|
-          ret[key] = redis_values[index].try(:to_i)
+        puts "values"
+        puts redis_values
+
+        names.each_with_index do |n, index|
+          ret[n] = redis_values[index].try(:to_i)
         end
 
         ret

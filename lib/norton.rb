@@ -3,12 +3,14 @@ require "connection_pool"
 require "active_support/concern"
 require "active_support/inflector"
 require "norton/version"
-# require "norton/helper"
+require "norton/helper"
 require "norton/timestamp"
 require "norton/counter"
 require "norton/timed_value"
 require "norton/objects/hash"
 require "norton/hash_map"
+
+require "pry"; binding.pry
 
 module Norton
   class NilObjectId < StandardError; end
