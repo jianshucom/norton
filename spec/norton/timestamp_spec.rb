@@ -24,6 +24,11 @@ describe Norton::Timestamp do
       expect(dummy).to respond_to(:born_at)
       expect(dummy).to respond_to(:touch_born_at)
     end
+
+    it "should create remove method" do
+      dummy = Dummy.new
+      expect(dummy).to respond_to(:remove_born_at)
+    end
   end
 
   describe "#touch_born_at" do

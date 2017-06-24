@@ -1,3 +1,3 @@
 module Norton
-  VERSION = "0.0.22"
+  VERSION = "0.0.24"
 end
