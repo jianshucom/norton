@@ -1,5 +1,7 @@
 # Norton
 
+[![CircleCI](https://circleci.com/gh/jianshucom/norton/tree/master.svg?style=svg)](https://circleci.com/gh/jianshucom/norton/tree/master)
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -16,7 +18,7 @@ Or install it yourself as:
 
 ## Setup
 
-You need to setup Norton with a redis connection, 
+You need to setup Norton with a redis connection,
 
 `Norton.setup url: <some redis connection url> `
 
@@ -33,7 +35,7 @@ Simply include `Norton::Counter` in your model, and define a counter.
 ```
 class User < ActiveRecord::Base
   include Norton::Counter
-  
+
   counter :total_likes_count
 end
 ```
@@ -48,7 +50,7 @@ You could also give a reset block:
 ```
 class User < ActiveRecord::Base
   include Norton::Counter
-  
+
   counter :total_likes_count do
     self.likes.count
   end
@@ -65,7 +67,7 @@ Simply include `Norton::Timestamp` in your model, and define a timestamp.
 ```
 class Note < ActiveRecord::Base
   include Norton::Timestamp
-  
+
   timestamp :content_updated_at
 end
 ```
@@ -79,7 +81,7 @@ You could specify callbacks along with condition Procs of when to touch the time
 ```
 class Note < ActiveRecord::Base
   include Norton::Timestamp
-  
+
   timestamp :content_updated_at, before_save: Proc.new { title_changed? || content_changed? }
 end
 ```
