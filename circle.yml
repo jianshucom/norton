@@ -3,5 +3,3 @@ machine:
     version: ruby-2.3.3
   services:
     - redis
-  post:
-    - CODECLIMATE_REPO_TOKEN=b25fbbff6b6b67d166ff1f446c22ab3ac6cc2eff7b4d3cf49cf147602f17e7ab bundle exec codeclimate-test-reporter
