@@ -1,8 +1,8 @@
 # Norton
 
 [![CircleCI](https://circleci.com/gh/jianshucom/norton/tree/master.svg?style=svg)](https://circleci.com/gh/jianshucom/norton/tree/master)
-[![Code Climate](https://codeclimate.com/github/codeclimate/codeclimate/badges/gpa.svg)](https://codeclimate.com/github/codeclimate/codeclimate)
-[![Test Coverage](https://codeclimate.com/github/codeclimate/codeclimate/badges/coverage.svg)](https://codeclimate.com/github/codeclimate/codeclimate/coverage)
+[![Code Climate](https://codeclimate.com/github/jianshucom/norton/badges/gpa.svg)](https://codeclimate.com/github/jianshucom/norton)
+[![Test Coverage](https://codeclimate.com/github/jianshucom/norton/badges/coverage.svg)](https://codeclimate.com/github/jianshucom/norton/coverage)
 
 ## Installation
 
