@@ -3,3 +3,5 @@ machine:
     version: ruby-2.3.3
   services:
     - redis
+  post:
+    - bundle exec codeclimate-test-reporter
