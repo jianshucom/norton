@@ -11,10 +11,10 @@ class HashMapObject
 end
 
 describe Norton::HashMap do
-  describe "#norton_redis_key" do
+  describe "#norton_value_key" do
     it "generates the correct field key" do
       object = HashMapObject.new
-      expect(object.norton_redis_key(:profile)).to eq("hash_map_objects:99:profile")
+      expect(object.norton_value_key(:profile)).to eq("hash_map_objects:99:profile")
     end
   end
 

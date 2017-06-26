@@ -17,37 +17,37 @@ module Norton
       def counter(name, options={}, &blk)
         define_method(name) do
           Norton.redis.with do |conn|
-            conn.get(self.norton_redis_key(name)).try(:to_i) || 0
+            conn.get(self.norton_value_key(name)).try(:to_i) || 0
           end
         end
 
         define_method("incr_#{name}") do
           Norton.redis.with do |conn|
-            conn.incr(self.norton_redis_key(name))
+            conn.incr(self.norton_value_key(name))
           end
         end
 
         define_method("decr_#{name}") do
           Norton.redis.with do |conn|
-            conn.decr(self.norton_redis_key(name))
+            conn.decr(self.norton_value_key(name))
           end
         end
 
         define_method("incr_#{name}_by") do |increment|
           Norton.redis.with do |conn|
-            conn.incrby(self.norton_redis_key(name), increment)
+            conn.incrby(self.norton_value_key(name), increment)
           end
         end
 
         define_method("decr_#{name}_by") do |decrement|
           Norton.redis.with do |conn|
-            conn.decrby(self.norton_redis_key(name), decrement)
+            conn.decrby(self.norton_value_key(name), decrement)
           end
         end
 
         define_method("#{name}=") do |v|
           Norton.redis.with do |conn|
-            conn.set(self.norton_redis_key(name), v)
+            conn.set(self.norton_value_key(name), v)
           end
         end
 
@@ -55,13 +55,13 @@ module Norton
           count = instance_eval(&blk)
 
           Norton.redis.with do |conn|
-            conn.set(self.norton_redis_key(name), count)
+            conn.set(self.norton_value_key(name), count)
           end
         end
 
         define_method("remove_#{name}") do
           Norton.redis.with do |conn|
-            conn.del(self.norton_redis_key(name))
+            conn.del(self.norton_value_key(name))
           end
         end
         send(:after_destroy, "remove_#{name}".to_sym) if respond_to? :after_destroy

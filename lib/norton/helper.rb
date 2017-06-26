@@ -34,7 +34,7 @@ module Norton
     #
     # @return [String]
     #
-    def norton_redis_key(name)
+    def norton_value_key(name)
       "#{self.norton_prefix}:#{name}"
     end
 
@@ -45,17 +45,17 @@ module Norton
     #
     # @return [Hash]
     #
-    def norton_vals(*names)
+    def norton_mget(*names)
       ret = {}
 
-      redis_keys = names.map { |n| self.norton_redis_key(n) }
+      redis_keys = names.map { |n| self.norton_value_key(n) }
 
       redis_values = Norton.redis.with do |conn|
         conn.mget(redis_keys)
       end
 
       names.each_with_index do |n, index|
-        ret[n] = redis_values[index].try(:to_i)
+        ret[n] = redis_values[index].try(:to_i) || 0
       end
 
       ret

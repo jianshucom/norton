@@ -11,7 +11,7 @@ module Norton
         define_method(name) do
           instance_variable_get("@#{name}") ||
             instance_variable_set("@#{name}",
-              Norton::Objects::Hash.new(self.norton_redis_key(name))
+              Norton::Objects::Hash.new(self.norton_value_key(name))
             )
         end
 
