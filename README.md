@@ -1,8 +1,6 @@
 # Norton
 
-test travis
-
-[![CircleCI](https://circleci.com/gh/jianshucom/norton/tree/master.svg?style=svg)](https://circleci.com/gh/jianshucom/norton/tree/master)
+[![Build Status](https://travis-ci.org/jianshucom/norton.svg?branch=master)](https://travis-ci.org/jianshucom/norton)
 [![Code Climate](https://codeclimate.com/github/jianshucom/norton/badges/gpa.svg)](https://codeclimate.com/github/jianshucom/norton)
 [![Test Coverage](https://codeclimate.com/github/jianshucom/norton/badges/coverage.svg)](https://codeclimate.com/github/jianshucom/norton/coverage)
 
