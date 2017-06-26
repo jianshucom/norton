@@ -78,7 +78,7 @@ module Norton
       end
 
       redis_keys.each_with_index do |k, i|
-        ret[k] = values[i]
+        ret[k] = values[i] || 0
       end
 
       ret
