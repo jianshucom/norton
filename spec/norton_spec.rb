@@ -8,7 +8,7 @@ describe Norton do
     end
   end
 
-  describe "norton_vals" do
+  describe "mget" do
     class Foobar
       include Norton::Counter
       include Norton::Timestamp
@@ -37,7 +37,7 @@ describe Norton do
       Random.rand(100).times { foobar2.incr_test_counter }
       foobar2.touch_test_timestamp
 
-      vals = Norton.norton_vals([foobar1, foobar2], [:test_counter, :test_timestamp])
+      vals = Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp])
     end
   end
 end

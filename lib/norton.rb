@@ -39,7 +39,7 @@ module Norton
     #
     # 例如:
     #
-    # vals = Norton.norton_vals([user1, user2, user3], [followers_count, profile_updated_at])
+    # vals = Norton.mget([user1, user2, user3], [followers_count, profile_updated_at])
     #
     # 将会返回:
     #
@@ -61,7 +61,7 @@ module Norton
     #
     # @return [Hash]
     #
-    def norton_vals(objects, names)
+    def mget(objects, names)
       ret = {}
       redis_keys = []
 
@@ -69,7 +69,7 @@ module Norton
         next if obj.nil?
 
         names.each do |n|
-          redis_keys << obj.norton_redis_key(n)
+          redis_keys << obj.norton_value_key(n)
         end
       end
 
