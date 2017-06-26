@@ -1,12 +1,9 @@
 require "simplecov"
-require "codeclimate-test-reporter"
 require "active_record"
 require "nulldb"
 require "norton"
 require "rspec"
 require "timecop"
-
-CodeClimate::TestReporter.start
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
   SimpleCov::Formatter::HTMLFormatter,
