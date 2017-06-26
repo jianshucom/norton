@@ -2,6 +2,40 @@ module Norton
   module Helper
     extend ActiveSupport::Concern
 
+    included do
+      instance_variable_set(:@norton_values, {})
+    end
+
+    module ClassMethods
+      attr_reader :norton_values
+
+
+      #
+      # 当前类是否定义了某个 Norton Value
+      #
+      # @param [String/Symbol] name
+      #
+      # @return [Boolean]
+      #
+      def norton_value_defined?(name)
+        self.norton_values.has_key?(name.to_sym)
+      end
+
+      #
+      # 当定义一个 Norton Value 的时候，将这个 Norton Value 记录在 Class Variable `@norton_values` 中
+      #
+      #
+      # @return [void]
+      #
+      def register_norton_value(name, norton_type)
+        if !Norton::SUPPORTED_TYPES.include?(norton_type.to_sym)
+          raise Norton::InvalidType.new("Norton Type: #{norton_type} invalid!")
+        end
+
+        @norton_values[name.to_sym] = norton_type.to_sym
+      end
+    end
+
     #
     # Prefix of Redis Key of Norton value, consists with Class name string in plural form
     # and Instance id.
@@ -55,7 +89,13 @@ module Norton
       end
 
       names.each_with_index do |n, index|
-        ret[n] = redis_values[index].try(:to_i) || 0
+        val = redis_values[index].try(:to_i)
+
+        if val.nil? && self.class.norton_value_defined?(n)
+          val = send("#{n}_default_value".to_sym)
+        end
+
+        ret[n] = val
       end
 
       ret

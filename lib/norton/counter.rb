@@ -15,10 +15,16 @@ module Norton
       #
       # @return [type] [description]
       def counter(name, options={}, &blk)
+        self.register_norton_value(name, :counter)
+
         define_method(name) do
           Norton.redis.with do |conn|
-            conn.get(self.norton_value_key(name)).try(:to_i) || 0
+            conn.get(self.norton_value_key(name)).try(:to_i) || send("#{name}_default_value".to_sym)
           end
+        end
+
+        define_method("#{name}_default_value") do
+          0
         end
 
         define_method("incr_#{name}") do

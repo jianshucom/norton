@@ -11,7 +11,10 @@ require "norton/objects/hash"
 require "norton/hash_map"
 
 module Norton
+  SUPPORTED_TYPES = %i(counter timestamp hash_map)
+
   class NilObjectId < StandardError; end
+  class InvalidType < StandardError; end
 
   class << self
     attr_accessor :redis
