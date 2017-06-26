@@ -5,11 +5,6 @@ require "norton"
 require "rspec"
 require "timecop"
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-  SimpleCov::Formatter::HTMLFormatter,
-  CodeClimate::TestReporter::Formatter
-]
-
 SimpleCov.start
 
 RSpec.configure do |config|
