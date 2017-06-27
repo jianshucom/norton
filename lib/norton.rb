@@ -31,7 +31,9 @@ module Norton
       timeout = (options[:timeout] || 2).to_i
 
       Norton.redis = ConnectionPool.new(:size => pool_size, :timeout => timeout) do
-        Redis.new(options.slice(:url, :host, :port, :db, :path, :password, :namespace, :ssl_params, :driver))
+        Redis.new(
+          options.slice(:url, :host, :port, :db, :path, :password, :namespace, :ssl_params, :driver)
+        )
       end
     end
 

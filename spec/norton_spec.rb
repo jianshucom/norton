@@ -88,5 +88,22 @@ describe Norton do
       expect(vals).to include("foobars:#{foobar1.id}:test_foobar" => nil)
       expect(vals).to include("foobars:#{foobar2.id}:test_foobar" => nil)
     end
+
+    it "returns the default value when the field value is nil" do
+      object = Foobar.new(99)
+      allow(object).to receive(:test_timestamp_default_value) { 22 }
+
+      ret = Norton.mget([object], %i[test_timestamp])
+      expect(ret["foobars:99:test_timestamp"]).to eq(22)
+    end
+
+    it "sets the default value in redis if the `Timestamp` field value is nil" do
+      object = Foobar.new(99)
+      allow(object).to receive(:test_timestamp_default_value) { 22 }
+
+      Norton.mget([object], %i[test_timestamp])
+
+      expect(Norton.redis.with { |conn| conn.get("foobars:99:test_timestamp") }.to_i).to eq(22)
+    end
   end
 end
