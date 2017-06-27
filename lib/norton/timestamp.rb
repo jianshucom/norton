@@ -21,28 +21,30 @@ module Norton
 
           Norton.redis.with do |conn|
             ts = conn.get(self.norton_value_key(name)).try(:to_i)
-            ts = send("#{name}_default_value".to_sym)
+
+            if ts.nil?
+              ts = send("#{name}_default_value".to_sym)
+              conn.set(self.norton_value_key(name), ts) if !ts.nil?
+            end
+
             ts
           end
         end
 
         define_method("#{name}_default_value") do
           if !options[:allow_nil]
-            Norton.redis.with do |conn|
-              if options[:digits].present? && options[:digits] == 13
-                ts = (Time.now.to_f * 1000).to_i
-              else
-                ts = Time.now.to_i
-              end
-
-              conn.set(self.norton_value_key(name), ts)
-
-              ts
+            if options[:digits].present? && options[:digits] == 13
+              ts = (Time.now.to_f * 1000).to_i
+            else
+              ts = Time.now.to_i
             end
+
+            ts
           else
             nil
           end
         end
+        send(:private, "#{name}_default_value".to_sym)
 
         define_method("touch_#{name}") do
           Norton.redis.with do |conn|

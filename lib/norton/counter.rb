@@ -26,6 +26,7 @@ module Norton
         define_method("#{name}_default_value") do
           0
         end
+        send(:private, "#{name}_default_value".to_sym)
 
         define_method("incr_#{name}") do
           Norton.redis.with do |conn|

@@ -138,6 +138,35 @@ describe Norton::Helper do
       end
     end
 
+    it "should save the default value for timestamp" do
+      dummy = Dummy.new
+
+      t = Time.now
+
+      Timecop.freeze(t) do
+        values = dummy.norton_mget(:time2)
+        expect(values[:time2]).to eq(t.to_i)
+
+        # Test value directly from Redis
+        val = Norton.redis.with { |conn| conn.get(dummy.norton_value_key(:time2)) }.to_i
+        expect(val).to eq(t.to_i)
+      end
+    end
+
+    it "should not save the default value for counter" do
+      dummy = Dummy.new
+
+      t = Time.now
+
+      Timecop.freeze(t) do
+        values = dummy.norton_mget(:counter1)
+        expect(values[:counter1]).to eq(0)
+
+        # Test value directly from Redis
+        expect(Norton.redis.with { |conn| conn.get(dummy.norton_value_key(:counter1)) }).to be_nil
+      end
+    end
+
     it "should return nil if the norton value is not defined" do
       dummy = Dummy.new
 
