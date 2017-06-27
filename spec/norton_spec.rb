@@ -38,6 +38,55 @@ describe Norton do
       foobar2.touch_test_timestamp
 
       vals = Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp])
+
+      expect(vals).to include("foobars:#{foobar1.id}:test_counter" => foobar1.test_counter)
+      expect(vals).to include("foobars:#{foobar1.id}:test_timestamp" => foobar1.test_timestamp)
+      expect(vals).to include("foobars:#{foobar2.id}:test_counter" => foobar2.test_counter)
+      expect(vals).to include("foobars:#{foobar2.id}:test_timestamp" => foobar2.test_timestamp)
+    end
+
+    it "should get default value correctly if no value in norton redis database" do
+      foobar1 = Foobar.new(SecureRandom.hex(2))
+      foobar2 = Foobar.new(SecureRandom.hex(2))
+
+      t = Time.now
+
+      Timecop.freeze(t) do
+        foobar1.incr_test_counter
+        foobar2.touch_test_timestamp
+      end
+
+      sleep(1)
+
+      t2 = Time.now
+
+      vals = Timecop.freeze(t2) do
+        Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp])
+      end
+
+      expect(vals).to include("foobars:#{foobar1.id}:test_counter" => 1)
+      expect(vals).to include("foobars:#{foobar1.id}:test_timestamp" => t2.to_i)
+      expect(vals).to include("foobars:#{foobar2.id}:test_counter" => 0)
+      expect(vals).to include("foobars:#{foobar2.id}:test_timestamp" => t.to_i)
+    end
+
+    it "should return nil for undefined norton values" do
+      foobar1 = Foobar.new(SecureRandom.hex(2))
+      foobar2 = Foobar.new(SecureRandom.hex(2))
+
+      t = Time.now
+
+      Timecop.freeze(t) do
+        foobar1.incr_test_counter
+        foobar2.touch_test_timestamp
+      end
+
+      vals = Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp, :test_foobar])
+
+      expect(vals).to include("foobars:#{foobar1.id}:test_counter" => 1)
+      expect(vals).to include("foobars:#{foobar2.id}:test_timestamp" => t.to_i)
+      expect(vals).to include("foobars:#{foobar1.id}:test_foobar" => nil)
+      expect(vals).to include("foobars:#{foobar2.id}:test_foobar" => nil)
     end
   end
 end
