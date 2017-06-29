@@ -14,27 +14,44 @@ module Norton
       #
       # @return [type] [description]
       def timestamp(name, options={})
+        self.register_norton_value(name, :timestamp)
+
         define_method(name) do
           ts = nil
 
           Norton.redis.with do |conn|
-            ts = conn.get(self.norton_redis_key(name)).try(:to_i)
+            ts = conn.get(self.norton_value_key(name)).try(:to_i)
 
-            if !options[:allow_nil] && ts.nil?
-              ts = Time.now.to_i
-              conn.set(self.norton_redis_key(name), ts)
+            if ts.nil?
+              ts = send("#{name}_default_value".to_sym)
+              conn.set(self.norton_value_key(name), ts) if !ts.nil?
             end
 
             ts
           end
         end
 
+        define_method("#{name}_default_value") do
+          if !options[:allow_nil]
+            if options[:digits].present? && options[:digits] == 13
+              ts = (Time.now.to_f * 1000).to_i
+            else
+              ts = Time.now.to_i
+            end
+
+            ts
+          else
+            nil
+          end
+        end
+        send(:private, "#{name}_default_value".to_sym)
+
         define_method("touch_#{name}") do
           Norton.redis.with do |conn|
             if options[:digits].present? && options[:digits] == 13
-              conn.set(self.norton_redis_key(name), (Time.now.to_f * 1000).to_i)
+              conn.set(self.norton_value_key(name), (Time.now.to_f * 1000).to_i)
             else
-              conn.set(self.norton_redis_key(name), Time.now.to_i)
+              conn.set(self.norton_value_key(name), Time.now.to_i)
             end
           end
         end
