@@ -37,82 +37,28 @@ module Norton
       end
     end
 
+    # 批量获取多个对象的多个 Norton 字段, 仅仅支持 counter / timestamp
     #
-    # 为多个 Norton 对象一次性取出多个值
+    # @example
+    #   Norton.mget([a_user, another_user], [:followers_count, :profile_updated_at])
     #
-    # 从一组相同的对象中，一次性取出多个 Norton 值。
+    # @param [Array] names 需要检索的字段
     #
-    # 例如:
+    # @return [Array] 一组对象
     #
-    # vals = Norton.mget([user1, user2, user3], [followers_count, profile_updated_at])
-    #
-    # 将会返回:
-    #
-    # ```
-    # {
-    #   "users:1:followers_count": 2,
-    #   "users:2:followers_count": 3,
-    #   "users:3:followers_count": 4,
-    #   "users:1:profile_updated_at": 1498315792,
-    #   "users:2:profile_updated_at": 1499315792,
-    #   "users:3:profile_updated_at": 1409315792,
-    # }
-    # ```
-    #
-    # * 返回的 Field 之间的顺序无法保证
-    #
-    # @param [Array] objects
-    # @param [Array] names
-    #
-    # @return [Hash]
-    #
-    def mget(objects, names)
-      ret = {}
+    def mget(objects, fields)
+      keys = objects.flat_map do |object|
+        fields.map { |f| object.norton_value_key(f) }
+      end
+      nested_values = Norton.redis.with do |conn|
+        conn.mget(keys)
+      end.each_slice(fields.size)
 
-      mapping = {}
-      redis_keys = []
-
-      objects.each_with_index do |obj, index|
-        next if obj.nil?
-
-        names.each do |n|
-          redis_key = obj.norton_value_key(n)
-
-          redis_keys << redis_key
-          mapping[redis_key] = [n, index]
-        end
+      objects.zip(nested_values).each do |object, values|
+        object.send(:assign_values, fields.zip(values).to_h)
       end
 
-      Norton.redis.with do |conn|
-        values = conn.mget(redis_keys)
-
-        redis_keys.each_with_index do |k, i|
-          val = values[i].try(:to_i)
-
-          # 如果返回值为 nil 并且定义了这个 norton value
-          # 那么获取返回值
-          if val.nil?
-            # 从 mapping 中取出 value name 和对应的 object
-            value_name, obj_index = mapping[k]
-            obj = objects[obj_index]
-
-            # 如果 object 定义了这个 value
-            if obj.class.norton_value_defined?(value_name)
-              # 获取默认值
-              val = obj.send("#{value_name}_default_value".to_sym)
-
-              # 如果返回值不为空，并且当前 value 的类型是 `timestamp` 将默认值存入 Redis
-              if !val.nil? && obj.class.norton_value_type(value_name) == :timestamp
-                conn.set(k, val)
-              end
-            end
-          end
-
-          ret[k] = val
-        end
-      end
-
-      ret
+      objects
     end
   end
 end

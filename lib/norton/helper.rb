@@ -9,29 +9,6 @@ module Norton
     module ClassMethods
       attr_reader :norton_values
 
-
-      #
-      # 当前类是否定义了某个 Norton Value
-      #
-      # @param [String/Symbol] name
-      #
-      # @return [Boolean]
-      #
-      def norton_value_defined?(name)
-        self.norton_values.has_key?(name.to_sym)
-      end
-
-      #
-      # 返回当前类定义的某个 Norton Value 的类型
-      #
-      # @param [String] name
-      #
-      # @return [Symbol]
-      #
-      def norton_value_type(name)
-        self.norton_values[name.to_sym].try(:to_sym)
-      end
-
       #
       # 当定义一个 Norton Value 的时候，将这个 Norton Value 记录在 Class Variable `@norton_values` 中
       #
@@ -44,6 +21,28 @@ module Norton
         end
 
         @norton_values[name.to_sym] = norton_type.to_sym
+      end
+
+      #
+      # 当前类是否定义了某个 Norton Value
+      #
+      # @param [String/Symbol] name
+      #
+      # @return [Boolean]
+      #
+      def norton_value_defined?(name)
+        norton_values.has_key?(name.to_sym)
+      end
+
+      #
+      # 返回当前类定义的某个 Norton Value 的类型
+      #
+      # @param [String] name
+      #
+      # @return [Symbol]
+      #
+      def norton_value_type(name)
+        norton_values[name.to_sym]
       end
     end
 
@@ -63,7 +62,7 @@ module Norton
       id = self.id
       raise Norton::NilObjectId if id.nil?
       klass = self.class.to_s.pluralize.underscore
-      "#{klass}:#{self.id}"
+      "#{klass}:#{id}"
     end
 
     #
@@ -80,46 +79,48 @@ module Norton
     # @return [String]
     #
     def norton_value_key(name)
-      "#{self.norton_prefix}:#{name}"
+      "#{norton_prefix}:#{name}"
     end
 
+    def cast_value(type, value)
+      case type.to_sym
+      when :counter then value.to_i
+      when :timestamp then value.to_i
+      end
+    end
+
+    # 批量取出当前对象的多个 Norton 字段, 仅仅支持 counter / timestamp
     #
-    # 批量取出当前对象的多个 Norton value, 仅仅支持 counter / timestamp
+    # @param [Array] names 需要检索的字段, 例如: :field1, :field2
     #
-    # @param [Array] *value_keys 直接传入需要的值的 key，例如: :key1, :key2, :key3
-    #
-    # @return [Hash]
+    # @return [Model] 当前对象
     #
     def norton_mget(*names)
-      ret = {}
-
-      redis_keys = names.map { |n| self.norton_value_key(n) }
-
-      Norton.redis.with do |conn|
-        # mget 一次取出所有的值
-        redis_values = conn.mget(redis_keys)
-
-        # 组装结果 Hash
-        names.each_with_index do |n, index|
-          val = redis_values[index].try(:to_i)
-
-          # 如果返回值为 nil 并且定义了这个 norton value
-          # 那么获取返回值
-          if val.nil? && self.class.norton_value_defined?(n)
-            val = send("#{n}_default_value".to_sym)
-
-            # 如果返回值不为空，将默认值存入 SSDB
-            # 并且当前 Value 是 `:timestamp`
-            if !val.nil? && self.class.norton_value_type(n) == :timestamp
-              conn.set(self.norton_value_key(n), val)
-            end
-          end
-
-          ret[n] = val
-        end
+      values = Norton.redis.with do |conn|
+        conn.mget(names.map { |name| norton_value_key(name) })
       end
 
-      ret
+      assign_values(names.zip(values).to_h)
+
+      self
     end
+
+    # :nodoc
+    def assign_values(new_values)
+      new_values.each do |field, val|
+        type = self.class.norton_value_type(field)
+        next unless %i[counter timestamp].include?(type)
+
+        value = cast_value(type, val || try("#{field}_default_value"))
+        instance_variable_set("@#{field}", value)
+
+        if type == :timestamp && val.nil? && !try("#{field}_default_value").nil?
+          Norton.redis.with do |conn|
+            conn.set(norton_value_key(field), value)
+          end
+        end
+      end
+    end
+    send(:private, :assign_values)
   end
 end

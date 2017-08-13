@@ -4,8 +4,8 @@ class Dummy
   include Norton::Timestamp
 
   timestamp :born_at
+  timestamp :thirteen_ts, :digits => 13
   timestamp :first_kissed_at, :allow_nil => true
-  # timestamp :graduated_at, before_save: -> { title_changed? || content_changed? }
 
   def id
     @id ||= Random.rand(10000)
@@ -13,59 +13,102 @@ class Dummy
 end
 
 describe Norton::Timestamp do
-  describe ".timestamp" do
-    it "should add a class method timestamp to the class" do
-      expect(Dummy).to respond_to(:timestamp)
+  let(:dummy) { Dummy.new }
+
+  it "responds to methods" do
+    expect(dummy.respond_to?(:born_at)).to be(true)
+    expect(dummy.respond_to?(:born_at_default_value)).to be(true)
+    expect(dummy.respond_to?(:touch_born_at)).to be(true)
+    expect(dummy.respond_to?(:remove_born_at)).to be(true)
+  end
+
+  describe "#born_at" do
+    it "returns the timestamp correctly" do
+      Norton.redis.with do |conn|
+        conn.set(dummy.norton_value_key(:born_at), 123)
+      end
+
+      expect(dummy.born_at).to eq(123)
+      expect(dummy.instance_variable_get(:@born_at)).to eq(123)
     end
 
-    it 'should create timestamp accessors and touch method' do
-      dummy = Dummy.new
+    it "returns default timestamp if no value in norton" do
+      allow(dummy).to receive(:born_at_default_value) { 456 }
+      dummy.born_at
 
-      expect(dummy).to respond_to(:born_at)
-      expect(dummy).to respond_to(:touch_born_at)
+      value = Norton.redis.with do |conn|
+        conn.get(dummy.norton_value_key(:born_at))
+      end
+      expect(value.to_i).to eq(456)
+    end
+  end
+
+  describe "#born_at_default_value" do
+    it "returns nil if the timestamp allow nil" do
+      expect(dummy.first_kissed_at_default_value).to eq(nil)
     end
 
-    it "should create remove method" do
-      dummy = Dummy.new
-      expect(dummy).to respond_to(:remove_born_at)
+    it "returns the current time as timestamp" do
+      Timecop.freeze(Time.current) do
+        expect(dummy.born_at_default_value).to eq(Time.current.to_i)
+      end
+    end
+
+    it "returns the current time as 13 digit timestamp" do
+      Timecop.freeze(Time.current) do
+        expect(dummy.thirteen_ts_default_value).to eq((Time.current.to_f * 1000).to_i)
+      end
     end
   end
 
   describe "#touch_born_at" do
-    it 'should set timestamp in redis' do
-      dummy = Dummy.new
-      dummy.touch_born_at
+    it "sets the timestamp to the current time" do
+      Timecop.freeze(Time.current) do
+        dummy.touch_born_at
 
-      Norton.redis.with do |conn|
-        born_at = conn.get("#{Dummy.to_s.pluralize.downcase}:#{dummy.id}:born_at")
-        expect(born_at.to_i).to be > 0
+        expect(
+          Norton.redis.with { |conn| conn.get(dummy.norton_value_key(:born_at)) }.to_i
+        ).to eq(Time.current.to_i)
+      end
+    end
+
+    it "sets the timestamp to the current time as 13 digit timestamp" do
+      Timecop.freeze(Time.current) do
+        dummy.touch_thirteen_ts
+
+        expect(
+          Norton.redis.with { |conn| conn.get(dummy.norton_value_key(:thirteen_ts)) }.to_i
+        ).to eq((Time.current.to_f * 1000).to_i)
+      end
+    end
+
+    it "sets the instance variable named by timestamp" do
+      Timecop.freeze(Time.current) do
+        dummy.touch_born_at
+        expect(dummy.instance_variable_get(:@born_at)).to eq(Time.current.to_i)
       end
     end
   end
 
-  describe "#born_at" do
-    it 'should get the timestamp' do
-      dummy = Dummy.new
+  describe "#remove_born_at" do
+    it "deletes the timestamp in the redis" do
       dummy.touch_born_at
-      expect(dummy.born_at).not_to be_nil
-      expect(dummy.born_at).to be_a(Fixnum)
+      expect(
+        Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:born_at)) }
+      ).to be(true)
+
+      dummy.remove_born_at
+      expect(
+        Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:born_at)) }
+      ).to be(false)
     end
 
-    it "should get current time as a default if timestamp is not touched" do
-      dummy = Dummy.new
-      t = Time.now
+    it "removes the instance variable named by timestamp" do
+      dummy.touch_born_at
+      expect(dummy.instance_variable_defined?(:@born_at)).to be(true)
 
-      Timecop.freeze(t) do
-        expect(dummy.born_at).to eq(t.to_i)
-        expect(dummy.born_at).to eq(t.to_i)
-      end
-    end
-  end
-
-  describe "#first_kissed_at" do
-    it "should return nil if not set before because it allows nil" do
-      dummy = Dummy.new
-      expect(dummy.first_kissed_at).to be_nil
+      dummy.remove_born_at
+      expect(dummy.instance_variable_defined?(:@born_at)).to be(false)
     end
   end
 end

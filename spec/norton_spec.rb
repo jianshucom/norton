@@ -8,102 +8,97 @@ describe Norton do
     end
   end
 
-  describe "mget" do
-    class Foobar
+  describe ".mget" do
+    class Dummy
       include Norton::Counter
       include Norton::Timestamp
+      include Norton::HashMap
 
-      counter :test_counter
-      timestamp :test_timestamp
-
-      def initialize(id)
-        @id = id
-      end
+      counter   :counter1
+      timestamp :time1
+      hash_map  :map1
 
       def id
-        @id
+        @id ||= Random.rand(10000)
       end
     end
 
-    it "should get the values correctly" do
-      foobar1 = Foobar.new(SecureRandom.hex(2))
-      foobar2 = Foobar.new(SecureRandom.hex(2))
+    let(:dummy) { Dummy.new }
 
-      Random.rand(100).times { foobar1.incr_test_counter }
-      foobar1.touch_test_timestamp
-
-      sleep(2)
-
-      Random.rand(100).times { foobar2.incr_test_counter }
-      foobar2.touch_test_timestamp
-
-      vals = Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp])
-
-      expect(vals).to include("foobars:#{foobar1.id}:test_counter" => foobar1.test_counter)
-      expect(vals).to include("foobars:#{foobar1.id}:test_timestamp" => foobar1.test_timestamp)
-      expect(vals).to include("foobars:#{foobar2.id}:test_counter" => foobar2.test_counter)
-      expect(vals).to include("foobars:#{foobar2.id}:test_timestamp" => foobar2.test_timestamp)
+    context "when the field isn't defined" do
+      it "doesn't set the instance variable" do
+        Norton.mget([dummy], %i[undefined_field])
+        expect(dummy.instance_variable_defined?(:@undefined_field)).to be(false)
+      end
     end
 
-    it "should get default value correctly if no value in norton redis database" do
-      foobar1 = Foobar.new(SecureRandom.hex(2))
-      foobar2 = Foobar.new(SecureRandom.hex(2))
+    context "when the type isn't in the [:counter, :timestamp]" do
+      it "doesn't set the instance variable" do
+        Norton.mget([dummy], %i[map1])
+        expect(dummy.instance_variable_defined?(:@map1)).to be(false)
+      end
+    end
 
-      t = Time.now
+    context "when the type is in the [:counter, :timestamp]" do
+      it "returns norton values correctly from redis" do
+        Norton.redis.with do |conn|
+          conn.set(dummy.norton_value_key(:counter1), 2)
+          conn.set(dummy.norton_value_key(:time1), 1234)
+        end
 
-      Timecop.freeze(t) do
-        foobar1.incr_test_counter
-        foobar2.touch_test_timestamp
+        Norton.mget([dummy], %i[counter1 time1])
+        expect(dummy.instance_variable_get(:@counter1)).to eq(2)
+        expect(dummy.instance_variable_get(:@time1)).to eq(1234)
       end
 
-      sleep(1)
+      it "returns the default value if no value in redis" do
+        allow(dummy).to receive(:counter1_default_value) { 99 }
+        allow(dummy).to receive(:time1_default_value) { 1234 }
 
-      t2 = Time.now
+        Norton.mget([dummy], %i[counter1 time1])
+        expect(dummy.instance_variable_get(:@counter1)).to eq(99)
+        expect(dummy.instance_variable_get(:@time1)).to eq(1234)
+      end
+    end
 
-      vals = Timecop.freeze(t2) do
-        Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp])
+    context "when the type is :counter" do
+      it "doesn't save the default value in redis if no value in redis" do
+        allow(dummy).to receive(:counter1_default_value) { 99 }
+
+        Norton.mget([dummy], %i[counter1])
+
+        value_from_redis = Norton.redis.with do |conn|
+          conn.get(dummy.norton_value_key(:counter1))
+        end
+        expect(value_from_redis).to be(nil)
+      end
+    end
+
+    context "when the type is :timestamp" do
+      context "when the attribute doesn't allow nil" do
+        it "saves the default value in redis if no value in redis" do
+          allow(dummy).to receive(:time1_default_value) { 1234 }
+
+          dummy.norton_mget(:time1)
+
+          value_from_redis = Norton.redis.with do |conn|
+            conn.get(dummy.norton_value_key(:time1))
+          end.to_i
+          expect(value_from_redis).to eq(1234)
+        end
       end
 
-      expect(vals).to include("foobars:#{foobar1.id}:test_counter" => 1)
-      expect(vals).to include("foobars:#{foobar1.id}:test_timestamp" => t2.to_i)
-      expect(vals).to include("foobars:#{foobar2.id}:test_counter" => 0)
-      expect(vals).to include("foobars:#{foobar2.id}:test_timestamp" => t.to_i)
-    end
+      context "when the attribute allow nil" do
+        it "doesn't save the default value in redis if no value in redis" do
+          allow(dummy).to receive(:time2_default_value) { nil }
 
-    it "should return nil for undefined norton values" do
-      foobar1 = Foobar.new(SecureRandom.hex(2))
-      foobar2 = Foobar.new(SecureRandom.hex(2))
+          dummy.norton_mget(:time2)
 
-      t = Time.now
-
-      Timecop.freeze(t) do
-        foobar1.incr_test_counter
-        foobar2.touch_test_timestamp
+          expect(
+            Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:time2)) }
+          ).to eq(false)
+        end
       end
-
-      vals = Norton.mget([foobar1, foobar2], [:test_counter, :test_timestamp, :test_foobar])
-
-      expect(vals).to include("foobars:#{foobar1.id}:test_counter" => 1)
-      expect(vals).to include("foobars:#{foobar2.id}:test_timestamp" => t.to_i)
-      expect(vals).to include("foobars:#{foobar1.id}:test_foobar" => nil)
-      expect(vals).to include("foobars:#{foobar2.id}:test_foobar" => nil)
-    end
-
-    it "returns the default value when the field value is nil" do
-      object = Foobar.new(99)
-      allow(object).to receive(:test_timestamp_default_value) { 22 }
-
-      ret = Norton.mget([object], %i[test_timestamp])
-      expect(ret["foobars:99:test_timestamp"]).to eq(22)
-    end
-
-    it "sets the default value in redis if the `Timestamp` field value is nil" do
-      object = Foobar.new(99)
-      allow(object).to receive(:test_timestamp_default_value) { 22 }
-
-      Norton.mget([object], %i[test_timestamp])
-
-      expect(Norton.redis.with { |conn| conn.get("foobars:99:test_timestamp") }.to_i).to eq(22)
     end
   end
 end

@@ -14,52 +14,44 @@ module Norton
       #
       # @return [type] [description]
       def timestamp(name, options={})
-        self.register_norton_value(name, :timestamp)
+        register_norton_value(name, :timestamp)
 
+        # Redis: GET
         define_method(name) do
-          ts = nil
+          value = Norton.redis.with do |conn|
+            raw_value = conn.get(norton_value_key(name))
+            break raw_value if raw_value.present?
 
-          Norton.redis.with do |conn|
-            ts = conn.get(self.norton_value_key(name)).try(:to_i)
-
-            if ts.nil?
-              ts = send("#{name}_default_value".to_sym)
-              conn.set(self.norton_value_key(name), ts) if !ts.nil?
+            send("#{name}_default_value").tap do |default_value|
+              conn.set(norton_value_key(name), default_value)
             end
-
-            ts
           end
+          instance_variable_set("@#{name}", value.to_i)
         end
 
         define_method("#{name}_default_value") do
-          if !options[:allow_nil]
-            if options[:digits].present? && options[:digits] == 13
-              ts = (Time.now.to_f * 1000).to_i
-            else
-              ts = Time.now.to_i
-            end
+          return nil if options[:allow_nil]
+          return (Time.current.to_f * 1000).to_i if options[:digits] == 13
 
-            ts
-          else
-            nil
-          end
+          Time.current.to_i
         end
-        send(:private, "#{name}_default_value".to_sym)
 
+        # Redis: SET
         define_method("touch_#{name}") do
+          value = options[:digits] == 13 ? (Time.current.to_f * 1000).to_i : Time.current.to_i
+
           Norton.redis.with do |conn|
-            if options[:digits].present? && options[:digits] == 13
-              conn.set(self.norton_value_key(name), (Time.now.to_f * 1000).to_i)
-            else
-              conn.set(self.norton_value_key(name), Time.now.to_i)
-            end
+            conn.set(norton_value_key(name), value)
           end
+          instance_variable_set("@#{name}", value)
         end
 
+        # Redis: DEL
         define_method("remove_#{name}") do
           Norton.redis.with do |conn|
-            conn.del("#{self.class.to_s.pluralize.underscore}:#{self.id}:#{name}")
+            conn.del(norton_value_key(name))
           end
+          remove_instance_variable("@#{name}")
         end
         send(:after_destroy, "remove_#{name}".to_sym) if respond_to? :after_destroy
 
