@@ -4,7 +4,7 @@ services:
   - redis-server
 
 rvm:
-  - 2.3.0
+  - 2.3.4
 
 script:
   - bundle exec rake
