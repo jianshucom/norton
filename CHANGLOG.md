@@ -1,3 +1,7 @@
+### 0.1.0
+
+- Change dependencies to support Rails >= 5.0
+
 ### 0.0.28
 
 - Fix `remove_#{norton_attribute}`
