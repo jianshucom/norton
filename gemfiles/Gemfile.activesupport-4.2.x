@@ -1,9 +1,9 @@
 source "https://rubygems.org"
 
-gemspec
+gemspec path: ".."
 
-gem "activesupport", "~> 5.0"
-gem "activerecord", "~> 5.0"
+gem "activesupport", "~> 4.2", ">= 4.2.5"
+gem "activerecord", "~> 4.2", ">= 4.2.5"
 
 group :test do
   gem "simplecov", "~> 0.14", require: false
