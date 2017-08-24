@@ -85,7 +85,7 @@ module Norton
           Norton.redis.with do |conn|
             conn.del(norton_value_key(name))
           end
-          remove_instance_variable("@#{name}")
+          remove_instance_variable("@#{name}") if instance_variable_defined?("@#{name}")
         end
         send(:after_destroy, "remove_#{name}".to_sym) if respond_to? :after_destroy
 
