@@ -18,15 +18,17 @@ module Norton
 
         # Redis: GET
         define_method(name) do
-          value = Norton.redis.with do |conn|
-            raw_value = conn.get(norton_value_key(name))
-            break raw_value if raw_value.present?
+          instance_variable_get("@#{name}") || begin
+            value = Norton.redis.with do |conn|
+              raw_value = conn.get(norton_value_key(name))
+              break raw_value if raw_value.present?
 
-            send("#{name}_default_value").tap do |default_value|
-              conn.set(norton_value_key(name), default_value)
+              send("#{name}_default_value").tap do |default_value|
+                conn.set(norton_value_key(name), default_value)
+              end
             end
+            instance_variable_set("@#{name}", value.to_i)
           end
-          instance_variable_set("@#{name}", value.to_i)
         end
 
         define_method("#{name}_default_value") do

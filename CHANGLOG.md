@@ -1,3 +1,7 @@
+### 0.1.1
+
+- Fix `attribute` **get** method, using instance variable directly.
+
 ### 0.1.0
 
 - Change dependencies to support Rails >= 5.0
