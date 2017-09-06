@@ -14,19 +14,23 @@ module Norton
       #
       # @return [type] [description]
       def timestamp(name, options={})
-        register_norton_value(name, :timestamp)
+        register_norton_value(name, :timestamp, options)
 
         # Redis: GET
         define_method(name) do
-          instance_variable_get("@#{name}") || begin
-            value = Norton.redis.with do |conn|
-              raw_value = conn.get(norton_value_key(name))
-              break raw_value if raw_value.present?
+          return instance_variable_get("@#{name}") if instance_variable_defined?("@#{name}")
 
-              send("#{name}_default_value").tap do |default_value|
-                conn.set(norton_value_key(name), default_value)
-              end
+          value = Norton.redis.with do |conn|
+            raw_value = conn.get(norton_value_key(name))
+            break raw_value if raw_value.present?
+
+            send("#{name}_default_value").tap do |default_value|
+              conn.set(norton_value_key(name), default_value)
             end
+          end
+          if value.nil? && options[:allow_nil]
+            instance_variable_set("@#{name}", nil)
+          else
             instance_variable_set("@#{name}", value.to_i)
           end
         end

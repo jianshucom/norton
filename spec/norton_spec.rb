@@ -16,6 +16,7 @@ describe Norton do
 
       counter   :counter1
       timestamp :time1
+      timestamp :time2, :allow_nil => true
       hash_map  :map1
 
       def id
@@ -94,6 +95,7 @@ describe Norton do
 
           dummy.norton_mget(:time2)
 
+          expect(dummy.time2).to be_nil
           expect(
             Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:time2)) }
           ).to eq(false)

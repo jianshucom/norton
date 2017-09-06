@@ -15,7 +15,7 @@ module Norton
       #
       # @return [type] [description]
       def counter(name, options={}, &blk)
-        register_norton_value(name, :counter)
+        register_norton_value(name, :counter, options)
 
         # Redis: GET
         define_method(name) do
