@@ -1,5 +1,9 @@
 ### 0.1.1
 
+- Fix `allow_nil` option for `timestamp` type. [#issue18](https://github.com/jianshucom/norton/issues/18)
+
+### 0.1.1
+
 - Fix `attribute` **get** method, using instance variable directly.
 
 ### 0.1.0
