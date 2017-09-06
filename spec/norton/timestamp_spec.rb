@@ -20,6 +20,11 @@ describe Norton::Timestamp do
     expect(dummy.respond_to?(:born_at_default_value)).to be(true)
     expect(dummy.respond_to?(:touch_born_at)).to be(true)
     expect(dummy.respond_to?(:remove_born_at)).to be(true)
+
+    expect(Dummy.norton_values[:thirteen_ts][:type]).to eq(:timestamp)
+    expect(Dummy.norton_values[:thirteen_ts][:digits]).to eq(13)
+    expect(Dummy.norton_values[:first_kissed_at][:allow_nil]).to eq(true)
+    expect(Dummy.norton_values[:first_kissed_at][:allow_nil]).to eq(true)
   end
 
   describe "#born_at" do
@@ -40,6 +45,10 @@ describe Norton::Timestamp do
         conn.get(dummy.norton_value_key(:born_at))
       end
       expect(value.to_i).to eq(456)
+    end
+
+    it "returns nil if no value in norton and the timestamp allows nil" do
+      expect(dummy.first_kissed_at).to be_nil
     end
   end
 

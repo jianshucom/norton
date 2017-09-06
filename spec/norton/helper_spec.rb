@@ -35,7 +35,13 @@ describe Norton::Helper do
 
     it "adds the fields with valid type to `@norton_values`" do
       Dummy.register_norton_value("foo", "counter")
-      expect(Dummy.norton_values[:foo]).to eq(:counter)
+      expect(Dummy.norton_values[:foo][:type]).to eq(:counter)
+    end
+
+    it "adds the fields with options" do
+      Dummy.register_norton_value("foo", "counter", :allow_nil => true)
+      expect(Dummy.norton_values[:foo][:type]).to eq(:counter)
+      expect(Dummy.norton_values[:foo][:allow_nil]).to eq(true)
     end
   end
 
@@ -158,6 +164,7 @@ describe Norton::Helper do
 
           dummy.norton_mget(:time2)
 
+          expect(dummy.time2).to be_nil
           expect(
             Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:time2)) }
           ).to eq(false)
