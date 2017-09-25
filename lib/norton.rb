@@ -6,7 +6,6 @@ require "norton/version"
 require "norton/helper"
 require "norton/timestamp"
 require "norton/counter"
-require "norton/timed_value"
 require "norton/objects/hash"
 require "norton/hash_map"
 
