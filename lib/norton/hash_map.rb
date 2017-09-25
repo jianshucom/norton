@@ -7,13 +7,13 @@ module Norton
     end
 
     module ClassMethods
-      def hash_map(name)
-        self.register_norton_value(name, :hash_map)
+      def hash_map(name, options = {})
+        register_norton_value(name, :hash_map, options)
 
         define_method(name) do
           instance_variable_get("@#{name}") ||
             instance_variable_set("@#{name}",
-              Norton::Objects::Hash.new(self.norton_value_key(name))
+              Norton::Objects::Hash.new(norton_value_key(name), :pool_name => options[:redis])
             )
         end
 

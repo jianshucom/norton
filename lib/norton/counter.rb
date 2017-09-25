@@ -16,11 +16,12 @@ module Norton
       # @return [type] [description]
       def counter(name, options={}, &blk)
         register_norton_value(name, :counter, options)
+        redis = norton_value_redis_pool(name)
 
         # Redis: GET
         define_method(name) do
           instance_variable_get("@#{name}") || begin
-            value = Norton.redis.with do |conn|
+            value = redis.with do |conn|
               conn.get(norton_value_key(name))
             end || send("#{name}_default_value")
             instance_variable_set("@#{name}", value.to_i)
@@ -29,7 +30,7 @@ module Norton
 
         # Redis: SET
         define_method("#{name}=") do |value|
-          if Norton.redis.with { |conn| conn.set(norton_value_key(name), value) }
+          if redis.with { |conn| conn.set(norton_value_key(name), value) }
             instance_variable_set("@#{name}", value.to_i)
           end
         end
@@ -40,7 +41,7 @@ module Norton
 
         # Redis: INCR
         define_method("incr_#{name}") do
-          value = Norton.redis.with do |conn|
+          value = redis.with do |conn|
             conn.incr(norton_value_key(name))
           end
           instance_variable_set("@#{name}", value.to_i)
@@ -48,7 +49,7 @@ module Norton
 
         # Redis: DECR
         define_method("decr_#{name}") do
-          value = Norton.redis.with do |conn|
+          value = redis.with do |conn|
             conn.decr(norton_value_key(name))
           end
           instance_variable_set("@#{name}", value.to_i)
@@ -56,7 +57,7 @@ module Norton
 
         # Redis: INCRBY
         define_method("incr_#{name}_by") do |increment|
-          value = Norton.redis.with do |conn|
+          value = redis.with do |conn|
             conn.incrby(norton_value_key(name), increment)
           end
           instance_variable_set("@#{name}", value.to_i)
@@ -64,7 +65,7 @@ module Norton
 
         # Redis: DECRBY
         define_method("decr_#{name}_by") do |decrement|
-          value = Norton.redis.with do |conn|
+          value = redis.with do |conn|
             conn.decrby(norton_value_key(name), decrement)
           end
           instance_variable_set("@#{name}", value.to_i)
@@ -74,7 +75,7 @@ module Norton
         define_method("reset_#{name}") do
           value = instance_eval(&blk)
 
-          Norton.redis.with do |conn|
+          redis.with do |conn|
             conn.set(norton_value_key(name), value)
           end
           instance_variable_set("@#{name}", value)
@@ -82,7 +83,7 @@ module Norton
 
         # Redis: DEL
         define_method("remove_#{name}") do
-          Norton.redis.with do |conn|
+          redis.with do |conn|
             conn.del(norton_value_key(name))
           end
           remove_instance_variable("@#{name}") if instance_variable_defined?("@#{name}")

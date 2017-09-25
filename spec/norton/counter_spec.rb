@@ -7,6 +7,10 @@ class Dummy
     candies
   end
 
+  counter :views_count, :redis => :tmp do
+    14
+  end
+
   def id
     @id ||= Random.rand(10000)
   end
@@ -138,6 +142,21 @@ describe Norton::Counter do
 
       dummy.remove_candies_count
       expect(dummy.instance_variable_defined?(:@candies_count)).to be(false)
+    end
+  end
+
+  describe "with another redis instance" do
+    it "saves the value in correct redis server" do
+      dummy.views_count = 10
+
+      value = Norton.pools[:tmp].with { |conn| conn.get(dummy.norton_value_key(:views_count)) }.to_i
+      expect(value).to eq(10)
+    end
+
+    it "gets the value correctly" do
+      Norton.pools[:tmp].with { |conn| conn.set(dummy.norton_value_key(:views_count), 10) }.to_i
+
+      expect(dummy.views_count).to eq(10)
     end
   end
 end

@@ -21,10 +21,15 @@ RSpec.configure do |config|
 
   # Clean Up Redis
   config.before(:each) do
-    Norton.redis.with { |conn| conn.flushdb }
+    Norton.pools.each do |_name, conn|
+      conn.with { |conn| conn.flushdb }
+    end
   end
 end
 
-Norton.setup url: "redis://localhost:6379/0"
+Norton.setup(
+  default: { url: "redis://localhost:6379/0" },
+  tmp: { url: "redis://localhost:6379/2" }
+)
 
 ActiveRecord::Base.establish_connection :adapter => :nulldb
