@@ -6,6 +6,7 @@ class Dummy
   include Norton::HashMap
 
   counter   :counter1
+  counter   :custom_redis_counter, :redis => :tmp
   timestamp :time1
   timestamp :time2, :allow_nil => true
   hash_map  :map1
@@ -169,6 +170,21 @@ describe Norton::Helper do
             Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:time2)) }
           ).to eq(false)
         end
+      end
+    end
+
+    context "when the attributes in multiples redis servers" do
+      it "returns the value correctly" do
+        Dummy.norton_value_redis_pool(:counter1).with do |conn|
+          conn.set(dummy.norton_value_key(:counter1), 2)
+        end
+        Dummy.norton_value_redis_pool(:custom_redis_counter).with do |conn|
+          conn.set(dummy.norton_value_key(:custom_redis_counter), 99)
+        end
+
+        dummy.norton_mget(:counter1, :custom_redis_counter)
+        expect(dummy.instance_variable_get(:@counter1)).to eq(2)
+        expect(dummy.instance_variable_get(:@custom_redis_counter)).to eq(99)
       end
     end
   end

@@ -15,12 +15,13 @@ module Norton
       # @return [type] [description]
       def timestamp(name, options={})
         register_norton_value(name, :timestamp, options)
+        redis = norton_value_redis_pool(name)
 
         # Redis: GET
         define_method(name) do
           return instance_variable_get("@#{name}") if instance_variable_defined?("@#{name}")
 
-          value = Norton.redis.with do |conn|
+          value = redis.with do |conn|
             raw_value = conn.get(norton_value_key(name))
             break raw_value if raw_value.present?
 
@@ -46,7 +47,7 @@ module Norton
         define_method("touch_#{name}") do
           value = options[:digits] == 13 ? (Time.current.to_f * 1000).to_i : Time.current.to_i
 
-          Norton.redis.with do |conn|
+          redis.with do |conn|
             conn.set(norton_value_key(name), value)
           end
           instance_variable_set("@#{name}", value)
@@ -54,7 +55,7 @@ module Norton
 
         # Redis: DEL
         define_method("remove_#{name}") do
-          Norton.redis.with do |conn|
+          redis.with do |conn|
             conn.del(norton_value_key(name))
           end
           remove_instance_variable("@#{name}") if instance_variable_defined?("@#{name}")

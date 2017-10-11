@@ -2,9 +2,20 @@ require 'spec_helper'
 
 describe Norton do
   describe "#setup" do
-    it "should setup a redis connection pool" do
-      Norton.setup url: 'redis://localhost:6379/0'
-      expect(Norton.redis).not_to be_nil
+    xit "sets a redis connection pool" do
+      Norton.setup(
+        default: { url: "redis://localhost:6379/0" }
+      )
+      expect(Norton.pools[:default]).not_to be_nil
+    end
+
+    xit "sets multiple redis connection pools" do
+      Norton.setup(
+        default: { url: "redis://localhost:6379/0" },
+        norton2: { url: "redis://localhost:6379/3" }
+      )
+      expect(Norton.pools.keys).to match_array(%i[default norton2])
+      expect(Norton.pools[:norton2]).not_to be_nil
     end
   end
 
@@ -15,6 +26,7 @@ describe Norton do
       include Norton::HashMap
 
       counter   :counter1
+      counter   :custom_redis_counter, :redis => :tmp
       timestamp :time1
       timestamp :time2, :allow_nil => true
       hash_map  :map1
@@ -100,6 +112,21 @@ describe Norton do
             Norton.redis.with { |conn| conn.exists(dummy.norton_value_key(:time2)) }
           ).to eq(false)
         end
+      end
+    end
+
+    context "when the attributes in multiples redis servers" do
+      it "returns the value correctly" do
+        Dummy.norton_value_redis_pool(:counter1).with do |conn|
+          conn.set(dummy.norton_value_key(:counter1), 2)
+        end
+        Dummy.norton_value_redis_pool(:custom_redis_counter).with do |conn|
+          conn.set(dummy.norton_value_key(:custom_redis_counter), 99)
+        end
+
+        Norton.mget([dummy], %i[counter1 custom_redis_counter])
+        expect(dummy.instance_variable_get(:@counter1)).to eq(2)
+        expect(dummy.instance_variable_get(:@custom_redis_counter)).to eq(99)
       end
     end
   end

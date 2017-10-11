@@ -44,6 +44,18 @@ module Norton
       def norton_value_type(name)
         norton_values.dig(name.to_sym, :type)
       end
+
+      #
+      # 返回当前类定义的某个 Norton Value 的 redis instance
+      #
+      # @param [String] name
+      #
+      # @return [ConnectionPool]
+      #
+      def norton_value_redis_pool(name)
+        pool_name = norton_values.dig(name.to_sym, :redis) || :default
+        Norton.pools[pool_name]
+      end
     end
 
     #
@@ -96,11 +108,19 @@ module Norton
     # @return [Model] 当前对象
     #
     def norton_mget(*names)
-      values = Norton.redis.with do |conn|
-        conn.mget(names.map { |name| norton_value_key(name) })
+      pools_with_name = names.each_with_object({}) do |name, hash|
+        pool = self.class.norton_value_redis_pool(name)
+        hash[pool] ||= []
+        hash[pool] << name
       end
 
-      assign_values(names.zip(values).to_h)
+      pools_with_name.each do |pool, fields|
+        values = pool.with do |conn|
+          conn.mget(fields.map { |field| norton_value_key(field) })
+        end
+
+        assign_values(fields.zip(values).to_h)
+      end
 
       self
     end
@@ -109,20 +129,23 @@ module Norton
     def assign_values(new_values)
       new_values.each do |field, val|
         type = self.class.norton_value_type(field)
+        ivar_name = :"@#{field}"
 
         case type
         when :counter
           value = cast_value(type, val || try("#{field}_default_value"))
-          instance_variable_set("@#{field}", value)
+          instance_variable_set(ivar_name, value)
         when :timestamp
           if !val.nil?
-            instance_variable_set("@#{field}", cast_value(type, val))
+            instance_variable_set(ivar_name, cast_value(type, val))
           elsif self.class.norton_values[field][:allow_nil]
-            instance_variable_set("@#{field}", nil)
+            instance_variable_set(ivar_name, nil)
           else
             value = cast_value(type, try("#{field}_default_value"))
-            instance_variable_set("@#{field}", value)
-            Norton.redis.with { |conn| conn.set(norton_value_key(field), value) }
+            instance_variable_set(ivar_name, value)
+            self.class.norton_value_redis_pool(field).with do |conn|
+              conn.set(norton_value_key(field), value)
+            end
           end
         end
       end
