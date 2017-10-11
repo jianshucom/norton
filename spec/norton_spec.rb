@@ -2,14 +2,21 @@ require 'spec_helper'
 
 describe Norton do
   describe "#setup" do
-    xit "sets a redis connection pool" do
+    after(:all) do
+      Norton.setup(
+        default: { url: "redis://localhost:6379/0" },
+        tmp: { url: "redis://localhost:6379/2" }
+      )
+    end
+
+    it "sets a redis connection pool" do
       Norton.setup(
         default: { url: "redis://localhost:6379/0" }
       )
       expect(Norton.pools[:default]).not_to be_nil
     end
 
-    xit "sets multiple redis connection pools" do
+    it "sets multiple redis connection pools" do
       Norton.setup(
         default: { url: "redis://localhost:6379/0" },
         norton2: { url: "redis://localhost:6379/3" }
